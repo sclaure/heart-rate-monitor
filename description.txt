@@ -1,0 +1,5 @@
+Description:
+
+The app that I made uses the android camera to detect fluctuations in color, which is then used to estimate a heart rate
+
+My method involves using the Android camera to grab a continuous stream of images of the user's finger, processing said images (applying a grayscale filter and using openCV edge detection) to produce consistent data, grabbing the summation of the non-zero pixels being displayed and formatting it into a graph, and then using peak detection on the data to determine heartbeat pulses. If the user is properly positioning their finger over the camera, the app is set to re-estimate the actual heartbeat every 10 seconds in order to remain accurate.
