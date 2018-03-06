@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
 
     // are we on the first second's worth of data
     private boolean calibration_second = true;
+    private boolean flashlight_off = true;
 
     private int second_counter = 0;
     private int sub_second_counter = 0;
@@ -65,11 +66,6 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         mOpenCVCameraView.setMaxFrameSize(200, 200);
         mOpenCVCameraView.setCvCameraViewListener(this);
 
-        // Match the view text fields with our variables
-        /*xValAcc = (TextView)findViewById(R.id.xText);
-        yValAcc = (TextView)findViewById(R.id.yText);
-        zValAcc = (TextView)findViewById(R.id.zText);*/
-
         hrDisplay = (TextView)findViewById(R.id.hrDisplay);
 
         // initialize the graph
@@ -83,8 +79,8 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         // customize a little bit viewport
         Viewport viewport = graph.getViewport();
         viewport.setYAxisBoundsManual(true);
-        viewport.setMaxY(800000);
-        viewport.setMinY(300000);
+        viewport.setMaxY(5800000);
+        viewport.setMinY(5300000);
 
         viewport.setScrollable(true);
     }
@@ -172,10 +168,10 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             second_counter += 1;
 
             if (second_counter == 10){
-                hr_num = (peak_count * 3);
+                hr_num = (peak_count * 6);
 
                 System.out.println("********************printing rate*********************************");
-                System.out.println(peak_count * 3);
+                System.out.println(peak_count * 6);
                 hrDisplay.setText("Heart Rate: " + hr_num);
                 System.out.println("********************printing rate*********************************");
                 peak_count = 0;
@@ -183,7 +179,7 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
             }
 
             else{
-                if (current_value > 800000){
+                if (current_value > 6500000){
                     hrDisplay.setText("Heart Rate: " + hr_num + " Place finger in front of camera, have magnitude within range");
                 } else {
                     hrDisplay.setText("Heart Rate: " + hr_num + " ( Calibrating: " + (10 - second_counter) + " more seconds )");
@@ -197,7 +193,8 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     public void onPause()
     {
         super.onPause();
-        mOpenCVCameraView.turnOffFlashlight();
+//        mOpenCVCameraView.turnOffFlashlight();
+        flashlight_off = true;
     }
 
     @Override
@@ -213,28 +210,35 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         int cannyThreshold=5;
 
         //CANNY Edge Detection
-        Imgproc.cvtColor(currentFrame, currentFrame, Imgproc.COLOR_RGBA2GRAY);
+        //Imgproc.cvtColor(currentFrame, currentFrame, Imgproc.COLOR_RGBA2GRAY);
 
-        Mat edgeFrame = currentFrame.clone();
-        Imgproc.Canny(currentFrame, edgeFrame, cannyThreshold / 3, cannyThreshold);
+        //Mat edgeFrame = currentFrame.clone();
+        //Imgproc.Canny(currentFrame, edgeFrame, cannyThreshold / 3, cannyThreshold);
 
-        mOpenCVCameraView.turnOnFlashlight();
+        if (flashlight_off) {
+            mOpenCVCameraView.turnOnFlashlight();
+        }
 
-        edgeFrame.reshape(0, 1);
-        Mat ones = Mat.ones(edgeFrame.size(), edgeFrame.type());
-        int numOnes = (int)edgeFrame.dot(ones);
+//        edgeFrame.reshape(0, 1);
+//        Mat ones = Mat.ones(edgeFrame.size(), edgeFrame.type());
+//        int numOnes = (int)edgeFrame.dot(ones);
+
+        currentFrame.reshape(0, 1);
+        Mat ones = Mat.ones(currentFrame.size(), currentFrame.type());
+        int numOnes = (int)currentFrame.dot(ones);
 
         colorCount = numOnes;
 
         // if colorCount is outside of our expected range:
         // probably an outlier, do not sync to it
-        if ((colorCount > 800000) || (colorCount < 250000)){
+        if ((colorCount > 5800000) || (colorCount < 5300000)){
             calibration_second = true;
             sub_second_counter = 0;
             second_counter = 0;
         }
 
-        return edgeFrame;
+//        return edgeFrame;
+        return currentFrame;
     }
 
     @Override
